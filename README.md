@@ -1019,7 +1019,7 @@ container in the following way:
 ```bash
 docker run -d -p 4444:4444 --shm-size="2g" \
   -v /home/ubuntu/files:/home/seluser/files \
-  selenium/standalone-chrome:4.4.0-20220725
+  selenium/standalone-chrome:4.4.0-20220726
 ```
 
 That will mount the host `/home/ubuntu/files` directory

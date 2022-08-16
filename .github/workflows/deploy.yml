@@ -73,7 +73,7 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: NAME=jamesmortensen1 VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} PUSH_IMAGE=true make tag_and_push_browser_images
+          command: NAME=jamesmortensen1 NAMESPACE=jamesmortensen1 VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} PUSH_IMAGE=true make tag_and_push_browser_images
       - name: Commit files
         run: |
           git config --local user.email "selenium-ci@users.noreply.github.com"

@@ -3,7 +3,7 @@ name: Deploys
 on:
   push:
     branches:
-      - test-deploy
+      - test-beta-deploy
 
 jobs:
   deploy:
@@ -83,9 +83,9 @@ jobs:
         uses: ad-m/github-push-action@a3fd843e49cd58d296bdd2431c4853569a1b900f # master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: test-deploy
+          branch: test-beta-deploy
       - name: Create release notes (release_notes.md)
-        run: ./generate_release_notes.sh ${LATEST_TAG} origin/test-deploy ${GRID_VERSION} ${BUILD_DATE}
+        run: ./generate_release_notes.sh ${LATEST_TAG} origin/test-beta-deploy ${GRID_VERSION} ${BUILD_DATE}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1

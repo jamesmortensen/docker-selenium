@@ -3,7 +3,7 @@ name: Deploys
 on:
   push:
     branches:
-      - trunk
+      - test-deploy
 
 jobs:
   deploy:
@@ -24,17 +24,17 @@ jobs:
       - name: Sets prerelease to false by default
         run: echo "PRERELEASE=false" >> $GITHUB_ENV
       - name: Build base image to get Grid version
-        run: VERSION="local" BUILD_DATE=${BUILD_DATE} make base
+        run: NAMESPACE=jamesmortensen1 NAME=jamesmortensen1 VERSION="local" BUILD_DATE=${BUILD_DATE} make base
       - name: Get Grid version
         # sed used to remove last comma of Selenium version output
-        run: echo "GRID_VERSION=$(docker run --rm selenium/base:local-${BUILD_DATE} java -jar /opt/selenium/selenium-server.jar hub --version | awk '{print $3}' | sed 's/\(.*\),/\1 /')" | awk '{$1=$1;print}' >> $GITHUB_ENV
+        run: echo "GRID_VERSION=$(docker run --rm jamesmortensen1/base:local-${BUILD_DATE} java -jar /opt/selenium/selenium-server.jar hub --version | awk '{print $3}' | sed 's/\(.*\),/\1 /')" | awk '{$1=$1;print}' >> $GITHUB_ENV
       - name: Is it a prerelease?
         run: echo "GRID_VERSION=${GRID_VERSION}-prerelease" >> $GITHUB_ENV && echo "PRERELEASE=true" >> $GITHUB_ENV
         if: contains(toJson(github.event.commits), '[prerelease]') == true
       - name: Display Grid version
         run: echo ${GRID_VERSION}
       - name: Remove local Docker tag
-        run: docker rmi selenium/base:local-${BUILD_DATE}
+        run: docker rmi jamesmortensen1/base:local-${BUILD_DATE}
       - name: Sets env var for the next tag
         run: echo "NEXT_TAG=${GRID_VERSION}-${BUILD_DATE}" >> $GITHUB_ENV
       - name: Get latest tag
@@ -44,7 +44,7 @@ jobs:
       - name: Update tag in docs and files
         run: ./update_tag_in_docs_and_files.sh ${LATEST_TAG} ${NEXT_TAG}
       - name: Build images
-        run: VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make build
+        run: NAMESPACE=jamesmortensen1 NAME=jamesmortensen1 VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make build
       - name: Login Docker Hub
         run: docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
         env:
@@ -55,25 +55,25 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make release
+          command: NAME=jamesmortensen1 VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make release
       - name: Tag images as latest
         uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # v2
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make tag_latest
+          command: NAME=jamesmortensen1 VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make tag_latest
       - name: Deploy latest tag
         uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # v2
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make release_latest
+          command: NAME=jamesmortensen1 VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} make release_latest
       - name: Tag browser images
         uses: nick-invision/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # v2
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} PUSH_IMAGE=true make tag_and_push_browser_images
+          command: NAME=jamesmortensen1 NAMESPACE=jamesmortensen1 VERSION="${GRID_VERSION}" BUILD_DATE=${BUILD_DATE} PUSH_IMAGE=true make tag_and_push_browser_images
       - name: Commit files
         run: |
           git config --local user.email "selenium-ci@users.noreply.github.com"
@@ -82,10 +82,10 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@a3fd843e49cd58d296bdd2431c4853569a1b900f # master
         with:
-          github_token: ${{ secrets.SELENIUM_CI_TOKEN }}
-          branch: trunk
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: test-deploy
       - name: Create release notes (release_notes.md)
-        run: ./generate_release_notes.sh ${LATEST_TAG} origin/trunk ${GRID_VERSION} ${BUILD_DATE}
+        run: ./generate_release_notes.sh ${LATEST_TAG} origin/test-deploy ${GRID_VERSION} ${BUILD_DATE}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
